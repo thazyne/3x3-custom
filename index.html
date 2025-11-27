@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3x3 using Pinterest</title>
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="app-container">
+
+    <div class="toolbar">
+      <div class="tool-group">
+        <span class="tool-label">Bg Color:</span>
+        <input type="color" id="bgColorPicker" value="#ffffff">
+      </div>
+      <div class="tool-group">
+        <span class="tool-label">Gap:</span>
+        <input type="range" id="gapSlider" min="0" max="40" value="20" style="width: 100px;">
+        <span id="gapValue" style="font-size:12px; width:20px;">20</span>
+      </div>
+      <div class="tool-group" style="margin-left:auto;">
+        <strong style="font-size: 14px;">3x3 Using pinterest</strong>
+      </div>
+    </div>
+
+    <div class="grid-container" id="gridContainer">
+      <div class="grid" id="grid">
+      </div>
+    </div>
+
+    <div class="editor-panel" id="editorPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+        <strong style="font-size:14px;">Atur Posisi Gambar</strong>
+        <button class="btn-action" id="btnReplace">🔄 Ganti</button>
+      </div>
+      <div class="editor-controls">
+        <div class="control-item">
+          <label class="tool-label">Zoom (Skala)</label>
+          <input type="range" id="zoomControl" min="0.5" max="4" step="0.1" value="1">
+        </div>
+        <div class="control-item">
+          <label class="tool-label">Geser X (Horizontal)</label>
+          <input type="range" id="panXControl" min="-150" max="150" value="0">
+        </div>
+        <div class="control-item">
+          <label class="tool-label">Geser Y (Vertikal)</label>
+          <input type="range" id="panYControl" min="-150" max="150" value="0">
+        </div>
+      </div>
+    </div>
+
+    <button id="btnSave" class="btn-save-main">Simpan Grid (PNG)</button>
+
+  </div>
+
+  <div class="modal-backdrop" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <button class="tab-btn active" onclick="switchTab('search')">Cari Pinterest</button>
+        <button class="tab-btn" onclick="switchTab('upload')">Upload Galeri</button>
+        <button class="btn-action" style="background:#eee; color:#333; margin-left:auto;"
+          id="btnCloseModal">Tutup</button>
+      </div>
+      <div class="modal-content">
+        <div id="view-search" class="view-section active">
+          <div class="search-bar-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Contoh: Anime landscape...">
+            <button class="btn-action" style="background:#1976d2; height: 100%;" id="btnSearch">Cari</button>
+          </div>
+          <div id="searchInfo" style="margin: 10px 0;"><small>Hasil pencarian muncul di sini.</small></div>
+          <div class="results-grid" id="resultsGrid"></div>
+        </div>
+        <div id="view-upload" class="view-section">
+          <div class="upload-area" id="dropZone">
+            <span style="font-size: 24px; margin-bottom: 10px;">📁</span>
+            <p>Klik area ini untuk memilih file gambar</p>
+            <input type="file" id="fileInput" hidden accept="image/*">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
