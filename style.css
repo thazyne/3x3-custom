@@ -3,9 +3,12 @@
 :root {
   --bg-color: #FFDEE9;
   --bg-gradient: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
-  --primary: #FF5A5F; /* Merah/Pink Neon */
-  --secondary: #3b82f6; /* Biru Neon */
-  --accent: #FFC900; /* Kuning */
+  --primary: #FF5A5F;
+  /* Merah/Pink Neon */
+  --secondary: #3b82f6;
+  /* Biru Neon */
+  --accent: #FFC900;
+  /* Kuning */
   --border: 3px solid #000000;
   --shadow: 6px 6px 0px #000000;
   --shadow-hover: 2px 2px 0px #000000;
@@ -41,7 +44,8 @@ body {
   padding: 20px;
   border: var(--border);
   box-shadow: var(--shadow);
-  border-radius: 0; /* Sudut tajam */
+  border-radius: 0;
+  /* Sudut tajam */
   display: flex;
   flex-wrap: wrap;
   gap: 20px;
@@ -109,17 +113,53 @@ input[type="range"] {
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(3, 150px);
-  grid-template-rows: repeat(3, 150px);
+  grid-template-columns: repeat(var(--grid-cols, 3), var(--cell-size, 150px));
+  grid-template-rows: repeat(var(--grid-cols, 3), var(--cell-size, 150px));
   gap: var(--gap-size);
-  transition: gap 0.3s;
+  transition: gap 0.3s, grid-template-columns 0.3s, grid-template-rows 0.3s;
 }
 
 @media (max-width: 600px) {
   .grid {
-    grid-template-columns: repeat(3, 90px);
-    grid-template-rows: repeat(3, 90px);
+    grid-template-columns: repeat(var(--grid-cols, 3), var(--cell-size-mobile, 90px));
+    grid-template-rows: repeat(var(--grid-cols, 3), var(--cell-size-mobile, 90px));
   }
+}
+
+/* Grid Size Select Dropdown */
+.grid-size-select {
+  padding: 8px 12px;
+  border: 2px solid #000;
+  border-radius: 0;
+  background: #fff;
+  font-family: 'Space Mono', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 3px 3px 0px #000;
+  transition: all 0.1s;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 30px;
+}
+
+.grid-size-select:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px #000;
+}
+
+.grid-size-select:focus {
+  outline: none;
+  background-color: var(--accent);
+}
+
+.grid-size-select:active {
+  transform: translate(0, 0);
+  box-shadow: 0px 0px 0px #000;
 }
 
 .grid-cell {
@@ -130,7 +170,8 @@ input[type="range"] {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #000; /* Border di setiap sel */
+  border: 2px solid #000;
+  /* Border di setiap sel */
   border-radius: 0;
   transition: all 0.2s ease;
 }
@@ -171,13 +212,15 @@ input[type="range"] {
 
 /* === EDITOR PANEL (Bawah) === */
 .editor-panel {
-  background: var(--accent); /* Kuning Mencolok */
+  background: var(--accent);
+  /* Kuning Mencolok */
   padding: 25px;
   border: var(--border);
   box-shadow: var(--shadow);
   border-radius: 0;
   display: none;
-  animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); /* Efek bounch */
+  animation: slideUp 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  /* Efek bounch */
 }
 
 .editor-panel.show {
@@ -185,8 +228,15 @@ input[type="range"] {
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .editor-controls {
@@ -220,7 +270,8 @@ input[type="range"] {
 .btn-action:hover {
   transform: translate(-2px, -2px);
   box-shadow: 6px 6px 0px #000;
-  background: var(--secondary); /* Biru saat hover */
+  background: var(--secondary);
+  /* Biru saat hover */
   color: #fff;
 }
 
@@ -236,7 +287,8 @@ input[type="range"] {
   padding: 15px;
   border-radius: 0;
   font-size: 16px;
-  font-family: 'Public Sans', sans-serif; /* Font beda untuk CTA */
+  font-family: 'Public Sans', sans-serif;
+  /* Font beda untuk CTA */
   font-weight: 800;
   text-transform: uppercase;
   cursor: pointer;
@@ -247,7 +299,8 @@ input[type="range"] {
 }
 
 .btn-save-main:hover {
-  background: var(--primary); /* Merah saat hover */
+  background: var(--primary);
+  /* Merah saat hover */
   box-shadow: 8px 8px 0px #000;
   transform: translate(-2px, -2px);
 }
@@ -270,7 +323,8 @@ input[type="range"] {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85); /* Lebih gelap */
+  background: rgba(0, 0, 0, 0.85);
+  /* Lebih gelap */
   backdrop-filter: grayscale(100%) blur(2px);
   display: none;
   align-items: center;
@@ -290,7 +344,8 @@ input[type="range"] {
   height: 80vh;
   max-height: 600px;
   border: var(--border);
-  box-shadow: 10px 10px 0px var(--primary); /* Bayangan Pink */
+  box-shadow: 10px 10px 0px var(--primary);
+  /* Bayangan Pink */
   border-radius: 0;
   display: flex;
   flex-direction: column;
@@ -357,8 +412,8 @@ input[type="range"] {
 }
 
 .search-input:focus {
-    outline: none;
-    box-shadow: 4px 4px 0px #000;
+  outline: none;
+  box-shadow: 4px 4px 0px #000;
 }
 
 .results-grid {
@@ -378,8 +433,8 @@ input[type="range"] {
 }
 
 .result-item:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px #000;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
 }
 
 .result-item img {
@@ -422,18 +477,60 @@ input[type="range"] {
   display: block;
 }
 
+/* URL Input Container */
+.url-input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 30px 20px;
+  text-align: center;
+  height: 100%;
+}
+
+.url-preview {
+  margin-top: 20px;
+  width: 100%;
+  max-width: 300px;
+  border: 2px solid #000;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: 4px 4px 0px #000;
+  display: none;
+}
+
+.url-preview.show {
+  display: block;
+}
+
+.url-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.url-preview-loading {
+  padding: 40px;
+  background: #f0f0f0;
+  color: #666;
+  font-weight: bold;
+}
+
 /* Scrollbar Styling agar sesuai tema */
 ::-webkit-scrollbar {
-    width: 12px;
+  width: 12px;
 }
+
 ::-webkit-scrollbar-track {
-    background: #fff;
-    border-left: 2px solid #000;
+  background: #fff;
+  border-left: 2px solid #000;
 }
+
 ::-webkit-scrollbar-thumb {
-    background: #000;
-    border: 2px solid #fff;
+  background: #000;
+  border: 2px solid #fff;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary);
+  background: var(--primary);
 }

@@ -1,9 +1,16 @@
 // === DATA MODEL ===
-let gridData = Array(9).fill(null).map((_, i) => ({
-  id: i, url: null, scale: 1, x: 0, y: 0
-}));
+let gridSize = 3; // Default 3x3
+let gridData = [];
 let activeCellIndex = null;
 let currentSettings = { gap: 20, bgColor: '#ffffff' };
+
+// Initialize grid data based on size
+function initGridData() {
+  const totalCells = gridSize * gridSize;
+  gridData = Array(totalCells).fill(null).map((_, i) => ({
+    id: i, url: null, scale: 1, x: 0, y: 0
+  }));
+}
 
 // === DOM ELEMENTS ===
 const gridEl = document.getElementById('grid');
@@ -12,6 +19,7 @@ const editorPanel = document.getElementById('editorPanel');
 const bgColorPicker = document.getElementById('bgColorPicker');
 const gapSlider = document.getElementById('gapSlider');
 const gapValue = document.getElementById('gapValue');
+const gridSizeSelect = document.getElementById('gridSizeSelect');
 const zoomControl = document.getElementById('zoomControl');
 const panXControl = document.getElementById('panXControl');
 const panYControl = document.getElementById('panYControl');
@@ -22,6 +30,10 @@ const resultsGrid = document.getElementById('resultsGrid');
 const searchInfo = document.getElementById('searchInfo');
 const fileInput = document.getElementById('fileInput');
 const dropZone = document.getElementById('dropZone');
+const urlInput = document.getElementById('urlInput');
+const btnApplyUrl = document.getElementById('btnApplyUrl');
+const urlPreview = document.getElementById('urlPreview');
+const urlError = document.getElementById('urlError');
 
 // === INITIALIZATION ===
 function initGrid() {
@@ -67,6 +79,67 @@ gapSlider.addEventListener('input', (e) => {
   document.documentElement.style.setProperty('--gap-size', val + 'px');
 });
 
+// === GRID SIZE CHANGE ===
+gridSizeSelect.addEventListener('change', (e) => {
+  const newSize = parseInt(e.target.value);
+  updateGridSize(newSize);
+});
+
+function updateGridSize(newSize) {
+  const oldSize = gridSize;
+  const oldTotal = oldSize * oldSize;
+  const newTotal = newSize * newSize;
+
+  // Preserve existing data
+  const oldData = [...gridData];
+
+  gridSize = newSize;
+
+  // Create new grid data array
+  gridData = Array(newTotal).fill(null).map((_, i) => {
+    // Keep existing data if available
+    if (i < oldData.length) {
+      return { ...oldData[i], id: i };
+    }
+    return { id: i, url: null, scale: 1, x: 0, y: 0 };
+  });
+
+  // Update CSS custom property for grid columns
+  document.documentElement.style.setProperty('--grid-cols', newSize);
+
+  // Calculate cell size for larger grids (auto-adjust)
+  const baseCellSize = 150;
+  const baseCellSizeMobile = 90;
+  const maxWidth = window.innerWidth <= 600 ? 320 : 550;
+
+  let cellSize = baseCellSize;
+  let cellSizeMobile = baseCellSizeMobile;
+
+  if (newSize > 3) {
+    cellSize = Math.floor((maxWidth - (currentSettings.gap * (newSize - 1))) / newSize);
+    cellSizeMobile = Math.floor((320 - (currentSettings.gap * (newSize - 1))) / newSize);
+  }
+
+  document.documentElement.style.setProperty('--cell-size', cellSize + 'px');
+  document.documentElement.style.setProperty('--cell-size-mobile', cellSizeMobile + 'px');
+
+  // Reset active cell if out of bounds
+  if (activeCellIndex !== null && activeCellIndex >= newTotal) {
+    activeCellIndex = null;
+    editorPanel.classList.remove('show');
+  }
+
+  // Re-initialize grid
+  initGrid();
+
+  // Re-render cells with images
+  gridData.forEach((data, index) => {
+    if (data.url) {
+      renderCell(index);
+    }
+  });
+}
+
 // === REAL-TIME EDITING ===
 function updateActiveImageStyle() {
   if (activeCellIndex === null) return;
@@ -100,7 +173,16 @@ window.switchTab = function (tabName) {
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('view-' + tabName).classList.add('active');
   const btns = document.querySelectorAll('.tab-btn');
-  if (tabName === 'search') btns[0].classList.add('active'); else btns[1].classList.add('active');
+  if (tabName === 'search') btns[0].classList.add('active');
+  else if (tabName === 'upload') btns[1].classList.add('active');
+  else if (tabName === 'url') btns[2].classList.add('active');
+
+  // Reset URL preview when switching tabs
+  if (tabName !== 'url') {
+    urlPreview.classList.remove('show');
+    urlPreview.innerHTML = '';
+    urlError.style.display = 'none';
+  }
 }
 
 async function searchPinterest(query) {
@@ -130,6 +212,86 @@ fileInput.addEventListener('change', (e) => {
     reader.readAsDataURL(file);
   }
   fileInput.value = ''; // reset
+});
+
+// === URL INPUT LOGIC ===
+function isValidUrl(string) {
+  try {
+    const url = new URL(string);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch (_) {
+    return false;
+  }
+}
+
+function showUrlPreview(url) {
+  urlPreview.innerHTML = '<div class="url-preview-loading">Memuat preview...</div>';
+  urlPreview.classList.add('show');
+  urlError.style.display = 'none';
+
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => {
+    urlPreview.innerHTML = '';
+    urlPreview.appendChild(img);
+  };
+  img.onerror = () => {
+    urlPreview.classList.remove('show');
+    urlPreview.innerHTML = '';
+    urlError.textContent = 'Gagal memuat gambar. Pastikan URL valid dan dapat diakses.';
+    urlError.style.display = 'block';
+  };
+  img.src = url;
+}
+
+function applyUrlImage() {
+  const url = urlInput.value.trim();
+
+  if (!url) {
+    urlError.textContent = 'Masukkan URL gambar terlebih dahulu.';
+    urlError.style.display = 'block';
+    return;
+  }
+
+  if (!isValidUrl(url)) {
+    urlError.textContent = 'URL tidak valid. Pastikan dimulai dengan http:// atau https://';
+    urlError.style.display = 'block';
+    return;
+  }
+
+  if (activeCellIndex === null) {
+    urlError.textContent = 'Pilih sel grid terlebih dahulu.';
+    urlError.style.display = 'block';
+    return;
+  }
+
+  // Use the URL directly
+  selectImage(url);
+
+  // Reset input
+  urlInput.value = '';
+  urlPreview.classList.remove('show');
+  urlPreview.innerHTML = '';
+  urlError.style.display = 'none';
+}
+
+btnApplyUrl.addEventListener('click', applyUrlImage);
+urlInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') applyUrlImage();
+});
+
+// Preview on input change with debounce
+let urlPreviewTimeout;
+urlInput.addEventListener('input', () => {
+  clearTimeout(urlPreviewTimeout);
+  const url = urlInput.value.trim();
+
+  if (url && isValidUrl(url)) {
+    urlPreviewTimeout = setTimeout(() => showUrlPreview(url), 500);
+  } else {
+    urlPreview.classList.remove('show');
+    urlPreview.innerHTML = '';
+  }
 });
 
 function selectImage(url) {
@@ -169,7 +331,7 @@ document.getElementById('btnSave').addEventListener('click', async () => {
   const cellSize = 400; // Resolusi Canvas
   const gap = currentSettings.gap;
   const border = gap;
-  const cols = 3; const rows = 3;
+  const cols = gridSize; const rows = gridSize;
   const totalW = (cols * cellSize) + ((cols - 1) * gap) + (border * 2);
   const totalH = (rows * cellSize) + ((rows - 1) * gap) + (border * 2);
 
@@ -179,7 +341,14 @@ document.getElementById('btnSave').addEventListener('click', async () => {
   ctx.fillStyle = currentSettings.bgColor; ctx.fillRect(0, 0, totalW, totalH);
 
   // Estimasi ukuran visual sel di layar (untuk perhitungan rasio geser)
-  const visualCellSize = window.innerWidth <= 600 ? 90 : 150;
+  // Calculate based on current grid size
+  const baseCellSize = 150;
+  const baseCellSizeMobile = 90;
+  const maxWidth = window.innerWidth <= 600 ? 320 : 550;
+  let visualCellSize = window.innerWidth <= 600 ? baseCellSizeMobile : baseCellSize;
+  if (gridSize > 3) {
+    visualCellSize = Math.floor((maxWidth - (currentSettings.gap * (gridSize - 1))) / gridSize);
+  }
 
   const promises = gridData.map((data, idx) => {
     if (!data.url) return Promise.resolve();
@@ -243,5 +412,6 @@ document.getElementById('btnSave').addEventListener('click', async () => {
   finally { btn.textContent = 'Simpan Grid (PNG)'; btn.disabled = false; }
 });
 
+initGridData();
 initGrid();
 switchTab('search');

@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>3x3 using Pinterest</title>
-  
+  <title>Grid Studio - Pinterest Image Grid</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -23,8 +23,19 @@
         <input type="range" id="gapSlider" min="0" max="40" value="20" style="width: 100px;">
         <span id="gapValue" style="font-size:12px; width:20px;">20</span>
       </div>
+      <div class="tool-group">
+        <span class="tool-label">Grid:</span>
+        <select id="gridSizeSelect" class="grid-size-select">
+          <option value="3">3x3</option>
+          <option value="4">4x4</option>
+          <option value="5">5x5</option>
+          <option value="6">6x6</option>
+          <option value="7">7x7</option>
+          <option value="8">8x8</option>
+        </select>
+      </div>
       <div class="tool-group" style="margin-left:auto;">
-        <strong style="font-size: 14px;">3x3 Using pinterest</strong>
+        <strong style="font-size: 14px;">🎨 Grid Studio</strong>
       </div>
     </div>
 
@@ -63,6 +74,7 @@
       <div class="modal-header">
         <button class="tab-btn active" onclick="switchTab('search')">Cari Pinterest</button>
         <button class="tab-btn" onclick="switchTab('upload')">Upload Galeri</button>
+        <button class="tab-btn" onclick="switchTab('url')">Paste URL</button>
         <button class="btn-action" style="background:#eee; color:#333; margin-left:auto;"
           id="btnCloseModal">Tutup</button>
       </div>
@@ -80,6 +92,19 @@
             <span style="font-size: 24px; margin-bottom: 10px;">📁</span>
             <p>Klik area ini untuk memilih file gambar</p>
             <input type="file" id="fileInput" hidden accept="image/*">
+          </div>
+        </div>
+        <div id="view-url" class="view-section">
+          <div class="url-input-container">
+            <span style="font-size: 48px; margin-bottom: 20px;">🔗</span>
+            <h3 style="margin-bottom: 15px; font-weight: 700;">Paste URL Gambar</h3>
+            <p style="margin-bottom: 20px; color: #666;">Masukkan link URL gambar dari internet</p>
+            <div class="search-bar-container">
+              <input type="text" class="search-input" id="urlInput" placeholder="https://example.com/image.jpg">
+              <button class="btn-action" style="background:#10b981; height: 100%;" id="btnApplyUrl">Terapkan</button>
+            </div>
+            <div id="urlPreview" class="url-preview"></div>
+            <p id="urlError" style="color: #ef4444; margin-top: 10px; display: none;"></p>
           </div>
         </div>
       </div>
