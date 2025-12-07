@@ -30,10 +30,9 @@ const resultsGrid = document.getElementById('resultsGrid');
 const searchInfo = document.getElementById('searchInfo');
 const fileInput = document.getElementById('fileInput');
 const dropZone = document.getElementById('dropZone');
-const urlInput = document.getElementById('urlInput');
-const btnApplyUrl = document.getElementById('btnApplyUrl');
-const urlPreview = document.getElementById('urlPreview');
-const urlError = document.getElementById('urlError');
+const pasteZone = document.getElementById('pasteZone');
+const pastePreview = document.getElementById('pastePreview');
+const pasteError = document.getElementById('pasteError');
 
 // === INITIALIZATION ===
 function initGrid() {
@@ -175,13 +174,13 @@ window.switchTab = function (tabName) {
   const btns = document.querySelectorAll('.tab-btn');
   if (tabName === 'search') btns[0].classList.add('active');
   else if (tabName === 'upload') btns[1].classList.add('active');
-  else if (tabName === 'url') btns[2].classList.add('active');
+  else if (tabName === 'paste') btns[2].classList.add('active');
 
-  // Reset URL preview when switching tabs
-  if (tabName !== 'url') {
-    urlPreview.classList.remove('show');
-    urlPreview.innerHTML = '';
-    urlError.style.display = 'none';
+  // Reset paste preview when switching tabs
+  if (tabName !== 'paste') {
+    pastePreview.classList.remove('show');
+    pastePreview.innerHTML = '';
+    pasteError.style.display = 'none';
   }
 }
 
@@ -214,84 +213,164 @@ fileInput.addEventListener('change', (e) => {
   fileInput.value = ''; // reset
 });
 
-// === URL INPUT LOGIC ===
-function isValidUrl(string) {
-  try {
-    const url = new URL(string);
-    return url.protocol === 'http:' || url.protocol === 'https:';
-  } catch (_) {
-    return false;
-  }
-}
+// === PASTE IMAGE LOGIC ===
+function handlePasteImage(e) {
+  e.preventDefault();
 
-function showUrlPreview(url) {
-  urlPreview.innerHTML = '<div class="url-preview-loading">Memuat preview...</div>';
-  urlPreview.classList.add('show');
-  urlError.style.display = 'none';
-
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => {
-    urlPreview.innerHTML = '';
-    urlPreview.appendChild(img);
-  };
-  img.onerror = () => {
-    urlPreview.classList.remove('show');
-    urlPreview.innerHTML = '';
-    urlError.textContent = 'Gagal memuat gambar. Pastikan URL valid dan dapat diakses.';
-    urlError.style.display = 'block';
-  };
-  img.src = url;
-}
-
-function applyUrlImage() {
-  const url = urlInput.value.trim();
-
-  if (!url) {
-    urlError.textContent = 'Masukkan URL gambar terlebih dahulu.';
-    urlError.style.display = 'block';
+  const clipboardData = e.clipboardData || window.clipboardData;
+  if (!clipboardData) {
+    pasteError.textContent = 'Clipboard tidak dapat diakses.';
+    pasteError.style.display = 'block';
     return;
   }
 
-  if (!isValidUrl(url)) {
-    urlError.textContent = 'URL tidak valid. Pastikan dimulai dengan http:// atau https://';
-    urlError.style.display = 'block';
+  const items = clipboardData.items;
+  let imageFile = null;
+
+  // Look for image in clipboard
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type.indexOf('image') !== -1) {
+      imageFile = items[i].getAsFile();
+      break;
+    }
+  }
+
+  if (!imageFile) {
+    pasteError.textContent = 'Tidak ada gambar di clipboard. Copy gambar terlebih dahulu.';
+    pasteError.style.display = 'block';
     return;
   }
 
   if (activeCellIndex === null) {
-    urlError.textContent = 'Pilih sel grid terlebih dahulu.';
-    urlError.style.display = 'block';
+    pasteError.textContent = 'Pilih sel grid terlebih dahulu.';
+    pasteError.style.display = 'block';
     return;
   }
 
-  // Use the URL directly
-  selectImage(url);
+  // Hide error
+  pasteError.style.display = 'none';
 
-  // Reset input
-  urlInput.value = '';
-  urlPreview.classList.remove('show');
-  urlPreview.innerHTML = '';
-  urlError.style.display = 'none';
+  // Read the image file
+  const reader = new FileReader();
+  reader.onload = (evt) => {
+    const dataUrl = evt.target.result;
+
+    // Show preview
+    pastePreview.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+    pastePreview.classList.add('show');
+
+    // Apply to grid after short delay for visual feedback
+    setTimeout(() => {
+      selectImage(dataUrl);
+
+      // Reset preview after applied
+      setTimeout(() => {
+        pastePreview.classList.remove('show');
+        pastePreview.innerHTML = '';
+      }, 300);
+    }, 500);
+  };
+  reader.readAsDataURL(imageFile);
 }
 
-btnApplyUrl.addEventListener('click', applyUrlImage);
-urlInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') applyUrlImage();
+// Paste event on paste zone
+pasteZone.addEventListener('paste', handlePasteImage);
+
+// Click to focus paste zone
+pasteZone.addEventListener('click', (e) => {
+  // Don't focus if clicking the mobile button
+  if (e.target.id !== 'btnPasteMobile') {
+    pasteZone.focus();
+  }
 });
 
-// Preview on input change with debounce
-let urlPreviewTimeout;
-urlInput.addEventListener('input', () => {
-  clearTimeout(urlPreviewTimeout);
-  const url = urlInput.value.trim();
-
-  if (url && isValidUrl(url)) {
-    urlPreviewTimeout = setTimeout(() => showUrlPreview(url), 500);
-  } else {
-    urlPreview.classList.remove('show');
-    urlPreview.innerHTML = '';
+// Also listen for paste globally when paste tab is active
+document.addEventListener('paste', (e) => {
+  const activeTab = document.querySelector('.view-section.active');
+  if (activeTab && activeTab.id === 'view-paste' && modal.classList.contains('show')) {
+    handlePasteImage(e);
   }
+});
+
+// === MOBILE PASTE BUTTON ===
+const btnPasteMobile = document.getElementById('btnPasteMobile');
+
+async function handleMobilePaste() {
+  if (activeCellIndex === null) {
+    pasteError.textContent = 'Pilih sel grid terlebih dahulu.';
+    pasteError.style.display = 'block';
+    return;
+  }
+
+  try {
+    // Check if Clipboard API is available
+    if (!navigator.clipboard || !navigator.clipboard.read) {
+      pasteError.textContent = 'Browser tidak mendukung paste gambar. Coba gunakan Upload Galeri.';
+      pasteError.style.display = 'block';
+      return;
+    }
+
+    // Request clipboard permission and read
+    const clipboardItems = await navigator.clipboard.read();
+
+    let imageBlob = null;
+
+    for (const item of clipboardItems) {
+      // Look for image types
+      const imageType = item.types.find(type => type.startsWith('image/'));
+      if (imageType) {
+        imageBlob = await item.getType(imageType);
+        break;
+      }
+    }
+
+    if (!imageBlob) {
+      pasteError.textContent = 'Tidak ada gambar di clipboard. Copy gambar terlebih dahulu.';
+      pasteError.style.display = 'block';
+      return;
+    }
+
+    // Hide error
+    pasteError.style.display = 'none';
+
+    // Read the blob as data URL
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const dataUrl = evt.target.result;
+
+      // Show preview
+      pastePreview.innerHTML = `<img src="${dataUrl}" alt="Preview">`;
+      pastePreview.classList.add('show');
+
+      // Apply to grid after short delay for visual feedback
+      setTimeout(() => {
+        selectImage(dataUrl);
+
+        // Reset preview after applied
+        setTimeout(() => {
+          pastePreview.classList.remove('show');
+          pastePreview.innerHTML = '';
+        }, 300);
+      }, 500);
+    };
+    reader.readAsDataURL(imageBlob);
+
+  } catch (err) {
+    console.error('Clipboard read error:', err);
+
+    // Different error messages based on error type
+    if (err.name === 'NotAllowedError') {
+      pasteError.textContent = 'Izin clipboard ditolak. Izinkan akses clipboard di browser.';
+    } else {
+      pasteError.textContent = 'Gagal membaca clipboard. Coba copy ulang gambar atau gunakan Upload Galeri.';
+    }
+    pasteError.style.display = 'block';
+  }
+}
+
+btnPasteMobile.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevent paste zone click
+  handleMobilePaste();
 });
 
 function selectImage(url) {

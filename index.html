@@ -74,7 +74,7 @@
       <div class="modal-header">
         <button class="tab-btn active" onclick="switchTab('search')">Cari Pinterest</button>
         <button class="tab-btn" onclick="switchTab('upload')">Upload Galeri</button>
-        <button class="tab-btn" onclick="switchTab('url')">Paste URL</button>
+        <button class="tab-btn" onclick="switchTab('paste')">Tempel Gambar</button>
         <button class="btn-action" style="background:#eee; color:#333; margin-left:auto;"
           id="btnCloseModal">Tutup</button>
       </div>
@@ -94,17 +94,29 @@
             <input type="file" id="fileInput" hidden accept="image/*">
           </div>
         </div>
-        <div id="view-url" class="view-section">
-          <div class="url-input-container">
-            <span style="font-size: 48px; margin-bottom: 20px;">🔗</span>
-            <h3 style="margin-bottom: 15px; font-weight: 700;">Paste URL Gambar</h3>
-            <p style="margin-bottom: 20px; color: #666;">Masukkan link URL gambar dari internet</p>
-            <div class="search-bar-container">
-              <input type="text" class="search-input" id="urlInput" placeholder="https://example.com/image.jpg">
-              <button class="btn-action" style="background:#10b981; height: 100%;" id="btnApplyUrl">Terapkan</button>
+        <div id="view-paste" class="view-section">
+          <div class="paste-area" id="pasteZone" tabindex="0">
+            <span style="font-size: 48px; margin-bottom: 20px;">📋</span>
+            <h3 style="margin-bottom: 15px; font-weight: 700;">Tempel Gambar dari Clipboard</h3>
+            <p style="margin-bottom: 15px; color: #666;">Copy gambar dari manapun, lalu:</p>
+
+            <!-- Desktop instruction -->
+            <div class="paste-instruction desktop-only">
+              <kbd>Ctrl</kbd> + <kbd>V</kbd>
             </div>
-            <div id="urlPreview" class="url-preview"></div>
-            <p id="urlError" style="color: #ef4444; margin-top: 10px; display: none;"></p>
+
+            <!-- Mobile button -->
+            <button class="btn-paste-mobile" id="btnPasteMobile">
+              📋 Tempel Gambar
+            </button>
+
+            <p class="desktop-only" style="margin-top: 15px; color: #888; font-size: 12px;">atau klik area ini dan tekan
+              Ctrl+V</p>
+            <p class="mobile-only" style="margin-top: 15px; color: #888; font-size: 12px;">Tekan tombol di atas setelah
+              copy gambar</p>
+
+            <div id="pastePreview" class="paste-preview"></div>
+            <p id="pasteError" style="color: #ef4444; margin-top: 10px; display: none;"></p>
           </div>
         </div>
       </div>
